@@ -1,0 +1,106 @@
+= git-cryptを少し試す
+
+* link:https://www.agwa.name/projects/git-crypt/[git-crypt - transparent file encryption in git]
+
+.試した環境
+[source,shell]
+----
+$ dpkg-query -W git git-crypt 
+git     1:2.30.0-1
+git-crypt       0.6.0-1
+$ lsb_release -dr
+Description:    Debian GNU/Linux bullseye/sid
+Release:        unstable
+$ uname -rm
+5.10.0-1-amd64 x86_64
+----
+
+== git-cryptの導入
+
+[source,shell]
+----
+$ sudo apt install git-crypt
+----
+
+== git-cryptの利用
+
+=== 適当なgitリポジトリを用意
+
+[source,shell]
+----
+$ mkdir git-crypt
+$ cd git-crypt
+$ git init
+----
+
+[source,shell]
+----
+$ git-crypt init
+Generating key...
+----
+
+=== git-cryptでgpgユーザーを登録
+
+[source,shell]
+----
+$ git-crypt add-gpg-user 9C3EC5272FFDAF803289ADE4398C09CC572E532C
+[master (root-commit) de08cf2] Add 1 git-crypt collaborator
+ 2 files changed, 4 insertions(+)
+ create mode 100644 .git-crypt/.gitattributes
+ create mode 100644 .git-crypt/keys/default/0/9C3EC5272FFDAF803289ADE4398C09CC572E532C.gpg
+----
+
+=== git-cryptで暗号化したいファイルを用意
+
+[source,shell]
+----
+$ echo password > password
+----
+
+=== 暗号化したいファイルを登録
+
+`.gitattributes` に暗号化したいファイルを登録する．
+
+[source,shell]
+----
+$ echo 'password filter=git-crypt diff=git-crypt' > | tee -a ./.gitattributes
+password filter=git-crypt diff=git-crypt
+----
+
+=== commitする
+
+[source,shell]
+----
+$ git add -A
+$ git commit -m "git cryptにpasswordを登録"
+----
+
+=== git push
+
+[source,shell]
+----
+$ git push
+----
+
+=== remoteで確認する
+
+該当ファイルが暗号化されている
+
+=== git cloneしてみる
+
+該当ファイルが暗号化されている
+
+[source,shell]
+----
+$ git clone https://bitbucket.org/matoken/git-crypt
+$ cd git-crypt
+$ file password 
+password: data
+$ od -xc ./password 
+0000000    4700    5449    5243    5059    0054    8d04    9325    2eb6
+         \0   G   I   T   C   R   Y   P   T  \0 004 215   % 223 266   .
+0000020    130a    674f    b417    8f41    e5bc    0295    de44    0024
+         \n 023   O   g 027 264   A 217 274 345 225 002   D 336   $
+0000037
+----
+
