@@ -104,3 +104,11 @@ $ od -xc ./password
 0000037
 ----
 
+アンロックすると中が見える．
+
+[source,shell]
+----
+$ git-crypt unlock
+$ cat password 
+password
+----
