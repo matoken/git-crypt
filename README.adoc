@@ -86,6 +86,16 @@ $ git push
 
 該当ファイルが暗号化されている
 
+[source,shell]
+----
+$ curl -s https://bitbucket.org/matoken/git-crypt/raw/3e9f470635393aad2c328730ab2ad2ff7169d525/password | od -xc
+0000000    4700    5449    5243    5059    0054    8d04    9325    2eb6
+         \0   G   I   T   C   R   Y   P   T  \0 004 215   % 223 266   .
+0000020    130a    674f    b417    8f41    e5bc    0295    de44    0024
+         \n 023   O   g 027 264   A 217 274 345 225 002   D 336   $
+0000037
+----
+
 === git cloneしてみる
 
 該当ファイルが暗号化されている
@@ -112,3 +122,66 @@ $ git-crypt unlock
 $ cat password 
 password
 ----
+
+再度ロックする
+
+[source,shell]
+----
+$ git-crypt lock
+----
+
+=== 新しい作業者の鍵を登録する
+
+[source,shell]
+----
+$ git-crypt add-gpg-user 5071E226B689C97F1481579CCB0449E0CF1A89BF
+[master 3eecbd4] Add 1 git-crypt collaborator
+ 1 file changed, 0 insertions(+), 0 deletions(-)
+ create mode 100644 .git-crypt/keys/default/0/5071E226B689C97F1481579CCB0449E0CF1A89BF.gpg
+----
+
+鍵の確認
+
+[source,shell]
+----
+$ git-crypt status
+not encrypted: .git-crypt/.gitattributes
+not encrypted: .git-crypt/keys/default/0/5071E226B689C97F1481579CCB0449E0CF1A89BF.gpg
+not encrypted: .git-crypt/keys/default/0/9C3EC5272FFDAF803289ADE4398C09CC572E532C.gpg
+not encrypted: .gitattributes
+    encrypted: password
+----
+
+== 既存のリポジトリでgit-cryptを使う
+
+----
+$ cd ${GIT_DIR}
+$ git-crypt init
+Generating key...
+$ vi .gitattributes
+$ git diff .gitattributes
+diff --git a/.gitattributes b/.gitattributes
+index a1b27b1..bfd57da 100644
+--- a/.gitattributes
++++ b/.gitattributes
+@@ -1 +1,2 @@
+ password filter=git-crypt diff=git-crypt
++seaclet filter=git-crypt diff=git-crypt
+$ git-crypt status
+not encrypted: .git-crypt/.gitattributes
+not encrypted: .git-crypt/keys/default/0/5071E226B689C97F1481579CCB0449E0CF1A89BF.gpg
+not encrypted: .git-crypt/keys/default/0/9C3EC5272FFDAF803289ADE4398C09CC572E532C.gpg
+not encrypted: .gitattributes
+    encrypted: password
+    encrypted: seaclet *** WARNING: staged/committed version is NOT ENCRYPTED! ***
+
+Warning: one or more files is marked for encryption via .gitattributes but
+was staged and/or committed before the .gitattributes file was in effect.
+Run 'git-crypt status' with the '-f' option to stage an encrypted version.
+$ git add .gitattributes
+$ git commit -m '`seaclet` file encrypt'
+----
+
+NOTE: 過去は暗号化されないので歴史から消すなどの改変が必要そう  +
+link:https://git-scm.com/book/ja/v2/Git-%E3%81%AE%E3%81%95%E3%81%BE%E3%81%96%E3%81%BE%E3%81%AA%E3%83%84%E3%83%BC%E3%83%AB-%E6%AD%B4%E5%8F%B2%E3%81%AE%E6%9B%B8%E3%81%8D%E6%8F%9B%E3%81%88[Git - 歴史の書き換え]
+
